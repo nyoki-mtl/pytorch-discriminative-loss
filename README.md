@@ -1,6 +1,8 @@
 # pytorch-discriminative-loss
 Implementation of discriminative loss for instance segmentation by pytorch
 
+![Result](result.png)
+
 ## Pretrained model
 - Download model from [here](https://drive.google.com/drive/folders/1ihcqYr9PptELUZjHVL7jT4LXB3VpfxNt?usp=sharing) and save it in model/
 

@@ -4,8 +4,7 @@ https://arxiv.org/pdf/1802.05591.pdf
 This implementation is based on following code:
 https://github.com/Wizaron/instance-segmentation-pytorch
 """
-from torch.nn.modules.loss import _assert_no_grad, _Loss
-from torch.autograd import Variable
+from torch.nn.modules.loss import _Loss
 import torch
 
 
@@ -13,8 +12,8 @@ class DiscriminativeLoss(_Loss):
 
     def __init__(self, delta_var=0.5, delta_dist=1.5,
                  norm=2, alpha=1.0, beta=1.0, gamma=0.001,
-                 usegpu=True, size_average=True):
-        super(DiscriminativeLoss, self).__init__(size_average)
+                 usegpu=True, reduction='mean'):
+        super(DiscriminativeLoss, self).__init__()
         self.delta_var = delta_var
         self.delta_dist = delta_dist
         self.norm = norm
@@ -25,7 +24,7 @@ class DiscriminativeLoss(_Loss):
         assert self.norm in [1, 2]
 
     def forward(self, input, target, n_clusters):
-        _assert_no_grad(target)
+        assert not target.requires_grad
         return self._discriminative_loss(input, target, n_clusters)
 
     def _discriminative_loss(self, input, target, n_clusters):
@@ -69,7 +68,6 @@ class DiscriminativeLoss(_Loss):
             assert n_pad_clusters >= 0
             if n_pad_clusters > 0:
                 pad_sample = torch.zeros(n_features, n_pad_clusters)
-                pad_sample = Variable(pad_sample)
                 if self.usegpu:
                     pad_sample = pad_sample.cuda()
                 mean_sample = torch.cat((mean_sample, pad_sample), dim=1)
@@ -123,7 +121,6 @@ class DiscriminativeLoss(_Loss):
             diff = means_a - means_b
 
             margin = 2 * self.delta_dist * (1.0 - torch.eye(n_clusters[i]))
-            margin = Variable(margin)
             if self.usegpu:
                 margin = margin.cuda()
             c_dist = torch.sum(torch.clamp(margin - torch.norm(diff, self.norm, 0), min=0) ** 2)
